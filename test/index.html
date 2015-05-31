@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<!--
+  ~ Copyright 2015 ivonet
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<html ng-app="app">
+<head lang="en">
+    <meta charset="UTF-8">
+    <title>Auth</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        table {
+            border-collapse: collapse;
+        }
+
+        table, th, td {
+            border: 1px solid black;
+        }
+
+        .error {
+            background-color: red;
+            color: white;
+        }
+    </style>
+</head>
+<body ng-controller="CouchController as ctrl" class="container">
+
+
+<h1>CouchDB client example</h1>
+
+<div class="jumbotron">
+    <h1 ng-show="ctrl.user">Hello {{ctrl.user}}</h1>
+
+    <p ng-hide="ctrl.user">You are currently not logged in.</p>
+
+    <p ng-hide="ctrl.user">{{ctrl.intro}}</p>
+
+</div>
+
+<div>
+    <p>CouchDB information:</p>
+    <table style="border: 1pt solid;">
+        <tr>
+            <td class="col-md-2">Server URL</td>
+            <td class="col-md-4">{{ctrl.serverLocation()}}</td>
+            <td class="col-md-2">
+                <div class="input-group">
+                    <span class="input-group-addon">URL</span>
+                    <input type="text" ng-model="ctrl.server"
+                           ng-change="ctrl.setServerLocation()"
+                           class="form-control"
+                           placeholder="Server location"/>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="col-md-2">Database name</td>
+            <td class="col-md-4">{{ctrl.databaseName() || "none set"}}</td>
+            <td class="col-md-2">
+                <div class="input-group">
+                    <span class="input-group-addon">DB</span>
+                    <input type="text"
+                           ng-model="ctrl.db"
+                           ng-change="ctrl.setDatabase()"
+                           class="form-control"
+                           placeholder="Database for test..."/>
+                </div>
+
+            </td>
+        </tr>
+        <tr>
+            <td class="col-md-2">isAuthenticated</td>
+            <td class="col-md-4">{{ctrl.user !== null}}</td>
+            <td class="col-md-2"><input type="button" ng-click="ctrl.check()" value="Check" class="btn btn-info"></td>
+        </tr>
+        <tr>
+            <td class="col-md-2">Error messages by app</td>
+            <td class="col-md-4" ng-class="{error: ctrl.msg != ''}">{{ctrl.msg || "none yet"}}</td>
+            <td class="col-md-2">
+                <button type="submit" class="btn btn-info">Clear</button>
+            </td>
+        </tr>
+        <tr ng-if="!ctrl.user">
+            <td class="col-md-2">login</td>
+            <td class="col-md-4">
+                <form class="form-inline" ng-submit="ctrl.login()" name="myLogin" novalidate>
+                    <div class="form-group">
+                        <label class="sr-only">Username</label>
+                        <input type="text" name="user" class="form-control"
+                               placeholder="Username">
+                    </div>
+                    <div class="form-group">
+                        <label class="sr-only">Password</label>
+                        <input type="password" name="pwd" class="form-control" placeholder="Password">
+                    </div>
+                    <!--<div class="checkbox">-->
+                    <!--<label>-->
+                    <!--<input type="checkbox"> Remember me-->
+                    <!--</label>-->
+                    <!--</div>-->
+                    <button type="submit" class="btn btn-primary">Sign in</button>
+                </form>
+            </td>
+            <td class="col-md-2"></td>
+        </tr>
+        <tr ng-if="ctrl.user">
+            <td class="col-md-2">Logout</td>
+            <td class="col-md-4">
+                <form ng-submit="ctrl.logout()" ng-show="ctrl.user">
+                    <button type="submit" class="btn btn-info">logout</button>
+                </form>
+            </td>
+            <td class="col-md-2"></td>
+        </tr>
+        <tr ng-if="ctrl.user && ctrl.roles">
+            <td class="col-md-2">You have roles</td>
+            <td class="col-md-4">
+                <ul ng-repeat="role in ctrl.roles" class="list-group">
+                    <li class="list-group-item">{{role}}</li>
+                </ul>
+            </td>
+            <td class="col-md-2"></td>
+        </tr>
+    </table>
+</div>
+
+
+<div class="panel panel-default" ng-show="ctrl.user">
+    <div class="panel-heading">Save a document...</div>
+    <div class="panel-body">
+        <div>
+            <form ng-submit="ctrl.saveDoc()" name="docu" novalidate>
+                <div class="input-group">
+                    <span class="input-group-addon">ID</span>
+                    <input type="text"
+                           ng-model="ctrl.doc._id"
+                           class="form-control"
+                           placeholder="Title"/>
+                </div>
+                <textarea class="form-control" rows="3" ng-model="ctrl.doc.data"></textarea>
+                <button type="submit" class="btn btn-primary">Save</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+<ul ng-repeat="doc in ctrl.docs">
+    <li><a href="#" ng-click="ctrl.deleteDoc(doc)">Delete: {{doc}}</a></li>
+</ul>
+
+<div class="content">
+    <h2>Some help:</h2>
+
+    <ul>
+        <li>see what happens if you login with one of the created users and then change server url 127.0.0.1 to
+            localhost and then press 'isAuthenticated'. and again when you change it back to 127.0.0.1?. Good stuff eh?
+        </li>
+        <li>if you login and then wait more then 10 minutes and press 'isAuthenticated' you should not be logged in
+            anymore. (session timeout)
+        </li>
+        <li>Try out the developer tools of your browser to see what happens behind the scenes.</li>
+
+    </ul>
+
+</div>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+<script src="../bower_components/angular/angular.js"></script>
+<!--<script src=""></script>-->
+<script src="../src/angular-ivonet-couchdb.js"></script>
+<script src="../src/app.js"></script>
+</body>
+</html>
