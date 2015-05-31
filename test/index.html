@@ -29,6 +29,10 @@
             border: 1px solid black;
         }
 
+        thead {
+            background-color: lightgray;
+        }
+
         .error {
             background-color: red;
             color: white;
@@ -51,7 +55,7 @@
 
 <div>
     <p>CouchDB information:</p>
-    <table style="border: 1pt solid;">
+    <table>
         <tr>
             <td class="col-md-2">Server URL</td>
             <td class="col-md-4">{{ctrl.serverLocation()}}</td>
@@ -87,9 +91,9 @@
         </tr>
         <tr>
             <td class="col-md-2">Error messages by app</td>
-            <td class="col-md-4" ng-class="{error: ctrl.msg != ''}">{{ctrl.msg || "none yet"}}</td>
+            <td class="col-md-4" ng-class="{error: ctrl.msg != ''}">{{ctrl.msg || "-"}}</td>
             <td class="col-md-2">
-                <button type="submit" class="btn btn-info">Clear</button>
+                <button type="submit" class="btn btn-info" ng-click="ctrl.msg = ''">Clear</button>
             </td>
         </tr>
         <tr ng-if="!ctrl.user">
@@ -134,14 +138,29 @@
             <td class="col-md-2"></td>
         </tr>
     </table>
+
+    <table ng-show="ctrl.docs != null && ctrl.docs.length > 0">
+        <thead>
+        <tr>
+            <th>Available documents:</th>
+        </tr>
+        </thead>
+        <tr ng-repeat="doc in ctrl.docs">
+            <td class="col-md-6">{{doc._id}}</td>
+            <td class="col-md-6">
+                <input type="button" class="btn btn-info" value="X" ng-click="ctrl.deleteDoc(doc)"/>
+                <input type="button" class="btn btn-info" value="E" ng-click="ctrl.editDoc(doc._id)"/>
+            </td>
+        </tr>
+    </table>
 </div>
 
 
-<div class="panel panel-default" ng-show="ctrl.user">
+<div class="panel panel-default">
     <div class="panel-heading">Save a document...</div>
     <div class="panel-body">
         <div>
-            <form ng-submit="ctrl.saveDoc()" name="docu" novalidate>
+            <form name="docu" novalidate>
                 <div class="input-group">
                     <span class="input-group-addon">ID</span>
                     <input type="text"
@@ -149,32 +168,46 @@
                            class="form-control"
                            placeholder="Title"/>
                 </div>
-                <textarea class="form-control" rows="3" ng-model="ctrl.doc.data"></textarea>
-                <button type="submit" class="btn btn-primary">Save</button>
+                <textarea class="form-control" rows="3" data-ng-model="ctrl.doc.data"></textarea>
+                <button type="submit" class="btn btn-primary" ng-click="ctrl.doc = {}">NEW</button>
+                <button type="submit" class="btn btn-primary" ng-click="ctrl.postDoc()">POST</button>
+                <button type="submit" class="btn btn-primary" ng-click="ctrl.putDoc()">PUT</button>
             </form>
         </div>
     </div>
 </div>
 
 
-<ul ng-repeat="doc in ctrl.docs">
-    <li><a href="#" ng-click="ctrl.deleteDoc(doc)">Delete: {{doc}}</a></li>
-</ul>
-
 <div class="content">
     <h2>Some Tips and Tricks:</h2>
-
     <ul>
-        <li>see what happens if you login with one of the created users and then change server url 127.0.0.1 to
-            localhost and then press 'isAuthenticated'. and again when you change it back to 127.0.0.1?. Good stuff eh?
+        <li>
+            see what happens if you login with one of the created users and then change server url 127.0.0.1 to
+            localhost and then press 'check' on isAuthenticated. and again when you change it back to 127.0.0.1?. Good
+            stuff eh?
         </li>
-        <li>if you login and then wait more then 10 minutes and press 'isAuthenticated' you should not be logged in
+        <li>
+            if you login and then wait more then 10 minutes and press 'isAuthenticated' you should not be logged in
             anymore. (session timeout)
         </li>
-        <li>Try out the developer tools of your browser to see what happens behind the scenes.</li>
-
+        <li>
+            Try out the developer tools of your browser to see what happens behind the scenes.
+        </li>
+        <li>
+            Look at the _design document in your test database and look at the field 'validate_doc_update'. This piece
+            of javascript enables you to control write access. This script you can change any way you like.
+        </li>
+        <li>
+            Try to save a document while not logged in...
+        </li>
+        <li>
+            If you try to save a document with the second test user (not a role blogger) you won't be able to.
+        </li>
+        <li>
+            Try to change the ID of a document you E(dit). You won't be able to. ID's can't change. You can Edit the
+            document then press delete and then press save...
+        </li>
     </ul>
-
 </div>
 
 

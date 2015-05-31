@@ -48,9 +48,7 @@
                  console.log("isAuthenticated: " + data);
                  self.user = couchdb.user.name();
                  self.roles = couchdb.user.roles();
-                 if (!data) {
-                    self.docs = [];
-                 }
+                 self.allDocs();
               }, function (data) {
                  self.user = '';
                  self.msg = data.reason;
@@ -80,15 +78,27 @@
          couchdb.db.use(self.db);
       };
 
-      self.saveDoc = function () {
-         doc = {};
-         doc.data = self.docu;
+      self.postDoc = function () {
          if (couchdb.db.getName() != null) {
-            couchdb.doc.post(doc).then(function (data) {
-                    console.log(data);
-                    doc._id = data.id;
-                    doc._rev = data.rev;
-                    self.allDocs()
+            couchdb.doc.post(self.doc).then(function (data) {
+                    console.log("post: " + JSON.stringify(data));
+                    self.doc._rev = data.rev;
+                    self.allDocs();
+                 }, function (data) {
+                    self.msg = data.reason;
+                 }
+            )
+         } else {
+            self.msg = "No DB defined..."
+         }
+      };
+
+      self.putDoc = function () {
+         if (couchdb.db.getName() != null) {
+            couchdb.doc.put(self.doc).then(function (data) {
+                    console.log("put: " + JSON.stringify(data));
+                    self.doc._rev = data.rev;
+                    self.allDocs();
                  }, function (data) {
                     self.msg = data.reason;
                  }
@@ -101,10 +111,17 @@
       self.deleteDoc = function (doc) {
          couchdb.doc.delete(doc).then(function (data) {
             console.log("Deleted: " + data);
-            self.allDocs()
+            self.allDocs();
+            self.doc = {};
          }, function (data) {
             console.log(data);
             self.msg = data.reason;
+         })
+      };
+
+      self.editDoc = function (id) {
+         couchdb.doc.get(id).then(function (data) {
+            self.doc = data;
          })
       };
 

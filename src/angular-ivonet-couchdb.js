@@ -83,9 +83,9 @@
          doc: {
             post: postDoc, //done
             delete: deleteDoc, //done
-            get: getDoc,
-            put: putDoc,
-            all: getAllDocs
+            get: getDoc, //done
+            put: putDoc, //done
+            all: getAllDocs //done
          }
 
       };
@@ -224,8 +224,31 @@
          return deferred.promise;
       }
 
-      function putDoc(doc) {
-         console.log("put: " + doc)
+      function putDoc(data) {
+         var deferred = $q.defer();
+         $http({
+            method: "PUT",
+            url: encodeUri(getDbUri(), data._id),
+            data: data,
+            headers: {'Content-Type': 'application/json'},
+            withCredentials: true
+         }).success(function (data) {
+            deferred.resolve(data);
+         }).error(function (data, status) {
+            if (data === null) {
+               data = {
+                  error: "Service Unavailable",
+                  reason: "The Server may be down"
+               }
+            }
+            deferred.reject({
+               status: status,
+               reason: data.reason,
+               error: data.error
+            })
+
+         });
+         return deferred.promise;
       }
 
       function deleteDoc(doc) {
@@ -261,8 +284,15 @@
          return deferred.promise;
       }
 
-      function getDoc(doc) {
-         console.log("get: " + doc)
+      function getDoc(id) {
+         var deferred = $q.defer();
+         $http({
+            method: "GET",
+            url: encodeUri(getDbUri(), id)
+         }).success(function (data) {
+            deferred.resolve(data);
+         });
+         return deferred.promise;
       }
 
       function getAllDocs() { //TODO Provide a limit to get
