@@ -13,7 +13,7 @@
     "security",
     "tests"
   ],
-  "license": "MIT",
+  "license": "Apache 2.0",
   "homepage": "http://www.ivonet.nl",
   "ignore": [
     "**/.*",
