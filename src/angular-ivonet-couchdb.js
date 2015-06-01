@@ -64,28 +64,28 @@
 
       return {
          server: {
-            setUrl: setServerUrl, //done
-            getUrl: getServerUrl //done
+            setUrl: setServerUrl,
+            getUrl: getServerUrl 
          },
          db: {
-            use: setDB, //done
-            getName: getDBName //done
+            use: setDB,
+            getName: getDBName 
          },
          user: {
-            login: login, //done
-            logout: logout, //done
-            session: session, //done
-            isAuthenticated: isAuthenticated, //done
-            name: getUserName, //done
-            roles: getUserRoles //done
+            login: login,
+            logout: logout,
+            session: session,
+            isAuthenticated: isAuthenticated,
+            name: getUserName,
+            roles: getUserRoles 
             //TODO createUser? deleteUser?
          },
          doc: {
-            post: postDoc, //done
-            delete: deleteDoc, //done
-            get: getDoc, //done
-            put: putDoc, //done
-            all: getAllDocs //done
+            post: postDoc,
+            delete: deleteDoc,
+            get: getDoc,
+            put: putDoc,
+            all: getAllDocs 
          }
 
       };
