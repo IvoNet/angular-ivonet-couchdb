@@ -23,7 +23,11 @@ gulp dist
 Please look at the example/index.html and try stuff out. 
 Just open it in a browser and start having fun.
 
-Or look at the unit tests
+Or look at the unit tests (in progress)
+
+Have a look at the couch_db folder...
+
+
 
 
 ## Test
