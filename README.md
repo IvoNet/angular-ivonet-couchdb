@@ -15,6 +15,12 @@ This module enables easy access to CouchDB from an angular application
 
 ## Usage
 
+'''sh
+npm install
+bower install
+gulp
+'''
+
 Please look at the test/index.html and try stuff out. 
 Just open it in a browser and start having fun.
 

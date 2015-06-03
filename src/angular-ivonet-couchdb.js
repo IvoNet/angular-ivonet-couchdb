@@ -16,6 +16,17 @@
 
 (function () {
 
+   function CouchConstants() {
+      "use strict";
+      return {
+         errorServiceUnavailable: {
+            status: 503,
+            error: "Service Unavailable",
+            reason: "The server may be down."
+         }
+      }
+   }
+
    function IvoNetCouchConfigProvider() {
       return {
          serverUrl: 'http://127.0.0.1:5984',
@@ -41,7 +52,7 @@
       '$http',
       '$q'
    ];
-   function CouchDB(IvoNetCouchConfig, $http, $q) {
+   function CouchDB(IvoNetCouchConfig, $http, $q, CouchConstants) {
       var encodeUri = function (base, part1, part2) {
          var uri = base;
          if (part1) {
@@ -65,11 +76,11 @@
       return {
          server: {
             setUrl: setServerUrl,
-            getUrl: getServerUrl 
+            getUrl: getServerUrl
          },
          db: {
             use: setDB,
-            getName: getDBName 
+            getName: getDBName
          },
          user: {
             login: login,
@@ -77,7 +88,7 @@
             session: session,
             isAuthenticated: isAuthenticated,
             name: getUserName,
-            roles: getUserRoles 
+            roles: getUserRoles
             //TODO createUser? deleteUser?
          },
          doc: {
@@ -85,7 +96,7 @@
             delete: deleteDoc,
             get: getDoc,
             put: putDoc,
-            all: getAllDocs 
+            all: getAllDocs
          }
 
       };
@@ -122,16 +133,15 @@
             deferred.resolve(data);
          }).error(function (data, status) {
             if (data === null) {
-               data = {
-                  error: "Service Unavailable",
-                  reason: "The Server may be down"
-               }
+               deferred.reject(CouchConstants.errorServiceUnavailable)
+            } else {
+               deferred.reject({
+                       status: status,
+                       reason: data.reason,
+                       error: data.error
+                    }
+               )
             }
-            deferred.reject({
-               status: status,
-               reason: data.reason,
-               error: data.error
-            })
          });
          return deferred.promise;
       }
@@ -173,16 +183,15 @@
             deferred.resolve(data.userCtx.name !== null);
          }).error(function (data, status) {
             if (data === null) {
-               data = {
-                  error: "Service Unavailable",
-                  reason: "The Server may be down"
-               }
+               deferred.reject(CouchConstants.errorServiceUnavailable)
+            } else {
+               deferred.reject({
+                       status: status,
+                       reason: data.reason,
+                       error: data.error
+                    }
+               )
             }
-            deferred.reject({
-               status: status,
-               reason: data.reason,
-               error: data.error
-            })
          });
          return deferred.promise;
       }
@@ -209,16 +218,15 @@
             deferred.resolve(data);
          }).error(function (data, status) {
             if (data === null) {
-               data = {
-                  error: "Service Unavailable",
-                  reason: "The Server may be down"
-               }
+               deferred.reject(CouchConstants.errorServiceUnavailable)
+            } else {
+               deferred.reject({
+                       status: status,
+                       reason: data.reason,
+                       error: data.error
+                    }
+               )
             }
-            deferred.reject({
-               status: status,
-               reason: data.reason,
-               error: data.error
-            })
 
          });
          return deferred.promise;
@@ -236,16 +244,15 @@
             deferred.resolve(data);
          }).error(function (data, status) {
             if (data === null) {
-               data = {
-                  error: "Service Unavailable",
-                  reason: "The Server may be down"
-               }
+               deferred.reject(CouchConstants.errorServiceUnavailable)
+            } else {
+               deferred.reject({
+                       status: status,
+                       reason: data.reason,
+                       error: data.error
+                    }
+               )
             }
-            deferred.reject({
-               status: status,
-               reason: data.reason,
-               error: data.error
-            })
 
          });
          return deferred.promise;
@@ -270,16 +277,15 @@
             deferred.resolve(data);
          }).error(function (data, status) {
             if (data === null) {
-               data = {
-                  error: "Service Unavailable",
-                  reason: "The Server may be down"
-               }
+               deferred.reject(CouchConstants.errorServiceUnavailable)
+            } else {
+               deferred.reject({
+                       status: status,
+                       reason: data.reason,
+                       error: data.error
+                    }
+               )
             }
-            deferred.reject({
-               status: status,
-               reason: data.reason,
-               error: data.error
-            })
          });
          return deferred.promise;
       }
@@ -288,7 +294,7 @@
          var deferred = $q.defer();
          $http({
             method: "GET",
-            url: encodeUri(getDbUri(), id)
+            url: encodeUri(getDbUri(), id.replace("/", "\/   "))
          }).success(function (data) {
             deferred.resolve(data);
          });
@@ -317,6 +323,7 @@
    }
 
    angular.module('IvoNetCouchDB', [])
+        .constant('CouchConstants', CouchConstants)
         .provider('IvoNetCouchConfig', IvoNetCouchConfigProvider)
         .factory('couchdb', CouchDB);
 
