@@ -13,11 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 var gulp = require('gulp');
-var concat = require('gulp-concat');
-var uglify = require('gulp-uglify');
-var notify = require('gulp-notify');
+var $ = require('gulp-load-plugins')();
 
 var modulename = 'angular-ivonet-couchdb';
 
@@ -27,12 +24,16 @@ var src = {
    dist: 'dist'
 };
 
+function preserveComments(node, comment) {
+   return /Copyright|Apache|License/.test(comment.value);
+}
+
 gulp.task('js', function () {
    return gulp.src(src.js)
-        .pipe(concat(modulename + '.min.js'))
-        .pipe(uglify())
+        .pipe($.concat(modulename + '.min.js'))
+        .pipe($.uglify({preserveComments: preserveComments}))
         .pipe(gulp.dest(src.dist))
-        .pipe(notify({message: 'Finished minifying JavaScript'}));
+        .pipe($.notify({message: 'Finished minifying JavaScript'}));
 });
 
 gulp.task('watch', function () {
@@ -40,7 +41,8 @@ gulp.task('watch', function () {
 });
 
 gulp.task('dist', ['js']);
-gulp.task('default', [
+gulp.task('default', ['js']);
+gulp.task('dev', [
    'js',
    'watch'
 ]);
