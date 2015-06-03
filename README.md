@@ -44,23 +44,30 @@ gulp tests
 ## Usage in Angular Project
 
 ```sh
-bower install IvoNet/angular-ivonet-couchdb --save
+bower install angular-ivonet-couchdb --save
 ```
 
 or
 
 ```sh
-npm install IvoNet/angular-ivonet-couchdb  --save
+npm install angular-ivonet-couchdb  --save
 ```
 
 For the rest see the example (app.js and index.html)
+
+
+## Bugs / Tips / Comments
+
+Please contact me [here](http://www.ivonet.nl/home/contact)
+
 
 # TODO
 
 * Prohibit `/` in _id's
 * Add Attachment support
 
-
 # License
 
 [Apache 2.0](http://www.apache.org/licenses/LICENSE-2.0)
+
+
