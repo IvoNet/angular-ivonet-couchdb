@@ -43,7 +43,10 @@ gulp tests
 
 ## Usage in Angular Project
 
+```sh
 bower install IvoNet/angular-ivonet-couchdb
+```
+ß
 
 # TODO
 
