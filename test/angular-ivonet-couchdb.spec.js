@@ -76,8 +76,8 @@ describe('Login function and the ConfigProvider', function () {
 
       //after
       $httpBackend.flush();
-      expect(config.usrCtx.name).toBe("ivo");
-      expect(config.usrCtx.roles).toEqual(["blogger"]);
+      expect(config.userCtx.name).toBe("ivo");
+      expect(config.userCtx.roles).toEqual(["blogger"]);
    });
 
    it("should not have a default db set", function () {
@@ -87,11 +87,12 @@ describe('Login function and the ConfigProvider', function () {
 
    it("should have a default 'empty' usrCtx", function () {
       "use strict";
-      expect(config.usrCtx.name).toBe(null);
-      expect(config.usrCtx.roles).toEqual([]);
+      expect(config.userCtx.name).toBe(null);
+      expect(config.userCtx.roles).toEqual([]);
    });
 
    it("should fake a unresponsive server", function () {
+      $httpBackend.expectPOST();
       $httpBackend.whenPOST("http://127.0.0.1:5984/_session")
            .respond(0, null);
 
@@ -145,8 +146,7 @@ describe('Login function and the ConfigProvider', function () {
 
       $httpBackend.expectGET();
       $httpBackend.whenGET("http://127.0.0.1:5984/_session")
-           .respond({"ok": true, "usrCtx": {"name": "AuthUser", "roles": ["_admin"]}}
-      );
+           .respond({"ok": true, "userCtx": {"name": "AuthUser", "roles": ["_admin"]}});
 
       $httpBackend.expectDELETE();
       $httpBackend.whenDELETE("http://127.0.0.1:5984/_session")
@@ -158,25 +158,443 @@ describe('Login function and the ConfigProvider', function () {
               expect(couch.user.name()).toBe('ivo');
               expect(couch.user.roles()[0]).toBe("blogger");
 
-              expect(config.usrCtx.name).toBe("ivo");
-              expect(config.usrCtx.roles).toEqual(["blogger"]);
+              expect(config.userCtx.name).toBe("ivo");
+              expect(config.userCtx.roles).toEqual(["blogger"]);
 
            }
       );
 
       couch.user.isAuthenticated().then(function (data) {
-         "use strict";
          expect(data).toBe(true);
-         expect(config.usrCtx.name).toBe("AuthUser");
-         expect(config.usrCtx.roles).toEqual(["_admin"]);
+         expect(config.userCtx.name).toBe("AuthUser");
+         expect(config.userCtx.roles).toEqual(["_admin"]);
       });
 
       couch.user.logout()
            .then(function () {
-              expect(config.usrCtx.name).toBe(null);
-              expect(config.usrCtx.roles).toEqual([]);
+              expect(config.userCtx.name).toBe(null);
+              expect(config.userCtx.roles).toEqual([]);
            }
       );
+
+      //after
+      $httpBackend.flush();
+   });
+
+   it("should play at being not logged in", function () {
+
+      //prepare
+      config.userCtx.name = "IAmNotNullAtStartOfTest";
+      $httpBackend.expectGET();
+      $httpBackend.whenGET("http://127.0.0.1:5984/_session")
+           .respond({"ok": true, "userCtx": {"name": null, "roles": []}}
+      );
+
+      //test
+      couch.user.isAuthenticated().then(function (data) {
+         expect(data).toBe(false);
+         expect(config.userCtx.name).toBe(null);
+      });
+
+      //after
+      $httpBackend.flush();
+
+   });
+
+   it("should play at not having connection when asking for Authentication", function () {
+      $httpBackend.expectGET();
+      $httpBackend.whenGET("http://127.0.0.1:5984/_session")
+           .respond(0, null);
+
+      couch.user.isAuthenticated().then(function (data) {
+         fail("Should never be here");
+      }, function (data) {
+         expect(data.status).toBe(503);
+         expect(data.error).toBe("Service Unavailable");
+         expect(data.reason).toBe("The server may be down.");
+      });
+
+      //after
+      $httpBackend.flush();
+   });
+
+   it("should POST a doc and succeed (happy flow)", function () {
+      //prepare
+      var doc = {"_id": "fooId", "data": "content"};
+      couch.db.use("testdb");
+
+      $httpBackend.expectPOST("http://127.0.0.1:5984/testdb", doc);
+      $httpBackend.whenPOST("http://127.0.0.1:5984/testdb")
+           .respond({"ok": true, "id": "fooId", "rev": "1-b8f7e9716f3965248ff57f57bd25afb6"});
+
+      //tests
+      couch.doc.post(doc).then(function (data) {
+         expect(data.id).toBe("fooId");
+         expect(data.rev).toBe("1-b8f7e9716f3965248ff57f57bd25afb6");
+      });
+
+      //after
+      $httpBackend.flush();
+   });
+
+   it("should play at trying to post a doc that already exists and where no _rev is provided", function () {
+      //prepare
+      var doc = {"_id": "fooId", "data": "content"};
+      couch.db.use("testdb");
+
+      $httpBackend.expectPOST("http://127.0.0.1:5984/testdb", doc);
+      $httpBackend.whenPOST("http://127.0.0.1:5984/testdb")
+           .respond(409, {"error": "conflict", "reason": "Document update conflict."});
+
+      //tests
+      couch.doc.post(doc).then(function (data) {
+         "use strict";
+         fail("Should not reach this code")
+      }, function (data) {
+         expect(data.status).toBe(409);
+         expect(data.error).toBe("conflict");
+         expect(data.reason).toBe("Document update conflict.");
+      });
+
+      //after
+      $httpBackend.flush();
+   });
+
+   it("should play at trying to post a doc but having not the correct rights", function () {
+      //prepare
+      var doc = {"_id": "fooId", "data": "content"};
+      couch.db.use("testdb");
+
+      $httpBackend.expectPOST("http://127.0.0.1:5984/testdb", doc);
+      $httpBackend.whenPOST("http://127.0.0.1:5984/testdb")
+           .respond(403, {
+              "error": "forbidden",
+              "reason": "Only users with role blogger or an admin can modify this database."
+           });
+
+      //tests
+      couch.doc.post(doc).then(function (data) {
+         "use strict";
+         fail("Should not reach this code")
+      }, function (data) {
+         expect(data.status).toBe(403);
+         expect(data.error).toBe("forbidden");
+         expect(data.reason).toBe("Only users with role blogger or an admin can modify this database.");
+
+      });
+
+      //after
+      $httpBackend.flush();
+   });
+
+   it("should play at trying to post a doc but having no connection", function () {
+      //prepare
+      var doc = {"_id": "fooId", "data": "content"};
+      couch.db.use("testdb");
+
+      $httpBackend.expectPOST("http://127.0.0.1:5984/testdb", doc);
+      $httpBackend.whenPOST("http://127.0.0.1:5984/testdb")
+           .respond(0, null);
+
+      //tests
+      couch.doc.post(doc).then(function (data) {
+         "use strict";
+         fail("Should not reach this code")
+      }, function (data) {
+         expect(data.status).toBe(503);
+      });
+
+      //after
+      $httpBackend.flush();
+   });
+
+   //PUT
+   it("should PUT a doc and succeed (happy flow)", function () {
+      //prepare
+      var doc = {"_id": "fooId", "data": "content"};
+      couch.db.use("testdb");
+
+      $httpBackend.expectPUT("http://127.0.0.1:5984/testdb/fooId", doc);
+      $httpBackend.whenPUT("http://127.0.0.1:5984/testdb/fooId")
+           .respond({"ok": true, "id": "fooId", "rev": "1-b8f7e9716f3965248ff57f57bd25afb6"});
+
+      //tests
+      couch.doc.put(doc).then(function (data) {
+         expect(data.id).toBe("fooId");
+         expect(data.rev).toBe("1-b8f7e9716f3965248ff57f57bd25afb6");
+      });
+
+      //after
+      $httpBackend.flush();
+   });
+
+   it("should play at trying to PUT a doc that already exists and where no _rev is provided", function () {
+      //prepare
+      var doc = {"_id": "fooId", "data": "content"};
+      couch.db.use("testdb");
+
+      $httpBackend.expectPUT("http://127.0.0.1:5984/testdb/fooId", doc);
+      $httpBackend.whenPUT("http://127.0.0.1:5984/testdb/fooId")
+           .respond(409, {"error": "conflict", "reason": "Document update conflict."});
+
+      //tests
+      couch.doc.put(doc).then(function (data) {
+         "use strict";
+         fail("Should not reach this code")
+      }, function (data) {
+         expect(data.status).toBe(409);
+         expect(data.error).toBe("conflict");
+         expect(data.reason).toBe("Document update conflict.");
+      });
+
+      //after
+      $httpBackend.flush();
+   });
+
+   it("should play at trying to PUT a doc but having not the correct rights", function () {
+      //prepare
+      var doc = {"_id": "fooId", "data": "content"};
+      couch.db.use("testdb");
+
+      $httpBackend.expectPUT("http://127.0.0.1:5984/testdb/fooId", doc);
+      $httpBackend.whenPUT("http://127.0.0.1:5984/testdb/fooId")
+           .respond(403, {
+              "error": "forbidden",
+              "reason": "Only users with role blogger or an admin can modify this database."
+           });
+
+      //tests
+      couch.doc.put(doc).then(function (data) {
+         "use strict";
+         fail("Should not reach this code")
+      }, function (data) {
+         expect(data.status).toBe(403);
+         expect(data.error).toBe("forbidden");
+         expect(data.reason).toBe("Only users with role blogger or an admin can modify this database.");
+
+      });
+
+      //after
+      $httpBackend.flush();
+   });
+
+   it("should play at trying to put a doc but having no connection", function () {
+      //prepare
+      var doc = {"_id": "fooId", "data": "content"};
+      couch.db.use("testdb");
+
+      $httpBackend.expectPUT("http://127.0.0.1:5984/testdb/fooId", doc);
+      $httpBackend.whenPUT("http://127.0.0.1:5984/testdb/fooId")
+           .respond(0, null);
+
+      //tests
+      couch.doc.put(doc).then(function (data) {
+         "use strict";
+         fail("Should not reach this code")
+      }, function (data) {
+         expect(data.status).toBe(503);
+      });
+
+      //after
+      $httpBackend.flush();
+   });
+
+   it("shoudl play at deleting a document and succeding", function () {
+      //prepare
+      var doc = {"_id": "fooId", "_rev": "revId"};
+      couch.db.use("testdb");
+
+      $httpBackend.expectDELETE("http://127.0.0.1:5984/testdb/fooId?rev=revId");
+      $httpBackend.whenDELETE("http://127.0.0.1:5984/testdb/fooId?rev=revId")
+           .respond({"ok": true, "id": "fooId", "rev": "revId"});
+
+      //tests
+      couch.doc.delete(doc).then(function (data) {
+         expect(data.id).toBe("fooId");
+         expect(data.rev).toBe("revId");
+      });
+
+      //after
+      $httpBackend.flush();
+   });
+
+   it("shoudl play at deleting a document and having no connection", function () {
+      //prepare
+      var doc = {"_id": "fooId", "_rev": "revId"};
+      couch.db.use("testdb");
+
+      $httpBackend.expectDELETE("http://127.0.0.1:5984/testdb/fooId?rev=revId");
+      $httpBackend.whenDELETE("http://127.0.0.1:5984/testdb/fooId?rev=revId")
+           .respond(0, null);
+
+      //tests
+      couch.doc.delete(doc).then(function (data) {
+         fail("never reach this")
+      }, function (data) {
+         expect(data.status).toBe(503);
+      });
+
+      //after
+      $httpBackend.flush();
+   });
+
+   it("shoudl play at deleting a document and having not the right credentials", function () {
+      //prepare
+      var doc = {"_id": "fooId", "_rev": "revId"};
+      couch.db.use("testdb");
+
+      $httpBackend.expectDELETE("http://127.0.0.1:5984/testdb/fooId?rev=revId");
+      $httpBackend.whenDELETE("http://127.0.0.1:5984/testdb/fooId?rev=revId")
+           .respond(403, {
+              "error": "forbidden",
+              "reason": "Only users with role blogger or an admin can modify this database."
+           });
+
+      //tests
+      couch.doc.delete(doc).then(function (data) {
+         "use strict";
+         fail("Should not reach this code")
+      }, function (data) {
+         expect(data.status).toBe(403);
+         expect(data.error).toBe("forbidden");
+         expect(data.reason).toBe("Only users with role blogger or an admin can modify this database.");
+      });
+
+      //after
+      $httpBackend.flush();
+   });
+
+   it("should play at retrieving a doc and succeeding", function () {
+      var doc = {"ok": true, "_id": "fooId", "_rev": "revId", "data": "content"};
+      couch.db.use("testdb");
+
+      //prepare
+      $httpBackend.expectGET("http://127.0.0.1:5984/testdb/fooId");
+      $httpBackend.whenGET("http://127.0.0.1:5984/testdb/fooId")
+           .respond(doc);
+
+      couch.doc.get("fooId").then(function (data) {
+         expect(data._id).toBe("fooId")
+      });
+
+      //after
+      $httpBackend.flush();
+   });
+
+   it("should play at retrieving a doc and having no connection", function () {
+      couch.db.use("testdb");
+
+      //prepare
+      $httpBackend.expectGET("http://127.0.0.1:5984/testdb/fooId");
+      $httpBackend.whenGET("http://127.0.0.1:5984/testdb/fooId")
+           .respond(0, null);
+
+      couch.doc.get("fooId").then(function (data) {
+         fail("Never reach this")
+      }, function (data) {
+         expect(data.status).toBe(503);
+      });
+
+      //after
+      $httpBackend.flush();
+   });
+
+   it("should play at retrieving a doc and having no rights", function () {
+      couch.db.use("testdb");
+
+      //prepare
+      $httpBackend.expectGET("http://127.0.0.1:5984/testdb/fooId");
+      $httpBackend.whenGET("http://127.0.0.1:5984/testdb/fooId")
+           .respond(403, {
+              "error": "forbidden",
+              "reason": "Only readers may access"
+           });
+
+      couch.doc.get("fooId").then(function (data) {
+         fail("Never reach this")
+      }, function (data) {
+         expect(data.status).toBe(403);
+         expect(data.error).toBe("forbidden");
+         expect(data.reason).toBe("Only readers may access");
+      });
+
+      //after
+      $httpBackend.flush();
+   });
+
+   it("should play at retrieving all docs and succeeding", function () {
+      var doc = {
+         "total_rows": 3,
+         "offset": 0,
+         "rows": [
+            {
+               "id": "_design/_auth",
+               "key": "_design/_auth",
+               "value": {"rev": "1-3ce65f7deffc664ae36db7d39c8f22d6"}
+            },
+            {"id": "112", "key": "112", "value": {"rev": "1-704ef9028f3157c9bfef9567d269289e"}},
+            {
+               "id": "asdfasdfasdfasdf",
+               "key": "asdfasdfasdfasdf",
+               "value": {"rev": "1-704ef9028f3157c9bfef9567d269289e"}
+            }
+         ]
+      };
+      couch.db.use("testdb");
+
+      //prepare
+      $httpBackend.expectGET("http://127.0.0.1:5984/testdb/_all_docs");
+      $httpBackend.whenGET("http://127.0.0.1:5984/testdb/_all_docs")
+           .respond(doc);
+
+      couch.doc.all().then(function (data) {
+         expect(data.total_rows).toBe(2);
+         for (var i = data.rows.length - 1; i >= 0; i--) {
+            if (data.rows[i].id.indexOf('_design') >= 0) {
+               fail("should not have found a design document")
+            }
+         }
+      });
+      //after
+      $httpBackend.flush();
+   });
+
+   it("should play at retrieving all docs and having no connection", function () {
+      couch.db.use("testdb");
+
+      //prepare
+      $httpBackend.expectGET("http://127.0.0.1:5984/testdb/_all_docs");
+      $httpBackend.whenGET("http://127.0.0.1:5984/testdb/_all_docs")
+           .respond(0, null);
+
+      couch.doc.all().then(function (data) {
+         fail("Never reach this")
+      }, function (data) {
+         expect(data.status).toBe(503);
+      });
+
+      //after
+      $httpBackend.flush();
+   });
+
+   it("should play at retrieving all docs and having no rights", function () {
+      couch.db.use("testdb");
+
+      //prepare
+      $httpBackend.expectGET("http://127.0.0.1:5984/testdb/_all_docs");
+      $httpBackend.whenGET("http://127.0.0.1:5984/testdb/_all_docs")
+           .respond(403, {
+              "error": "forbidden",
+              "reason": "Only readers may access"
+           });
+
+      couch.doc.all().then(function (data) {
+         fail("Never reach this")
+      }, function (data) {
+         expect(data.status).toBe(403);
+         expect(data.error).toBe("forbidden");
+         expect(data.reason).toBe("Only readers may access");
+      });
 
       //after
       $httpBackend.flush();

@@ -20,11 +20,11 @@
       return {
          serverUrl: 'http://127.0.0.1:5984',
          db: null,
-         usrCtx: {name: null, roles: []},
+         userCtx: {name: null, roles: []},
          $get: function () {
             return {
                server: this.serverUrl,
-               usrCtx: this.usrCtx,
+               userCtx: this.userCtx,
                db: this.db
             }
          }
@@ -113,9 +113,10 @@
             data: body.replace(/%20/g, "+"),
             withCredentials: true
          }).success(function (data) {
+            //console.log(JSON.stringify(data));
             delete data["ok"];
             data.name = usr;
-            IvoNetCouchConfig.usrCtx = data;
+            IvoNetCouchConfig.userCtx = data;
             deferred.resolve(data);
          }).error(function (data, status) {
             if (data === null) {
@@ -139,7 +140,7 @@
             url: getSessionUrl(),
             withCredentials: true
          }).success(function () {
-            IvoNetCouchConfig.usrCtx = {name: null, roles: []};
+            IvoNetCouchConfig.userCtx = {name: null, roles: []};
             deferred.resolve(true)
          });
          return deferred.promise;
@@ -164,8 +165,45 @@
             url: getSessionUrl(),
             withCredentials: true
          }).success(function (data) {
-            IvoNetCouchConfig.usrCtx = data.usrCtx;
-            deferred.resolve(data.usrCtx.name !== null);
+            //console.log(JSON.stringify(data));
+            IvoNetCouchConfig.userCtx = data.userCtx;
+            deferred.resolve(data.userCtx.name !== null);
+         }).error(function (data, status) {
+            if (data === null) {
+               deferred.reject(CouchConstants.ERR_CONNECTION_REFUSED)
+            } else {
+               deferred.reject({ //TODO Is this branch ever reached?
+                       status: status,
+                       reason: data.reason,
+                       error: data.error
+                    }
+               )
+            }
+         });
+         return deferred.promise;
+      }
+
+      function getUserName() {
+         return IvoNetCouchConfig.userCtx.name;
+      }
+
+      function getUserRoles() {
+         return IvoNetCouchConfig.userCtx.roles;
+      }
+
+      function postDoc(doc) {
+         //console.log(JSON.stringify(doc));
+         var deferred = $q.defer();
+         $http({
+            method: "POST",
+            url: getDbUri(),
+            data: doc,
+            headers: {'Content-Type': 'application/json'},
+            withCredentials: true
+         }).success(function (data) {
+            //console.log(JSON.stringify(data));
+            delete data["ok"];
+            deferred.resolve(data);
          }).error(function (data, status) {
             if (data === null) {
                deferred.reject(CouchConstants.ERR_CONNECTION_REFUSED)
@@ -181,20 +219,13 @@
          return deferred.promise;
       }
 
-      function getUserName() {
-         return IvoNetCouchConfig.usrCtx.name;
-      }
-
-      function getUserRoles() {
-         return IvoNetCouchConfig.usrCtx.roles;
-      }
-
-      function postDoc(doc) {
+      function putDoc(data) {
          var deferred = $q.defer();
+         //console.log(JSON.stringify(data));
          $http({
-            method: "POST",
-            url: getDbUri(),
-            data: doc,
+            method: "PUT",
+            url: encodeUri(getDbUri(), data._id),
+            data: data,
             headers: {'Content-Type': 'application/json'},
             withCredentials: true
          }).success(function (data) {
@@ -211,53 +242,20 @@
                     }
                )
             }
-
-         });
-         return deferred.promise;
-      }
-
-      function putDoc(data) {
-         var deferred = $q.defer();
-         $http({
-            method: "PUT",
-            url: encodeUri(getDbUri(), data._id),
-            data: data,
-            headers: {'Content-Type': 'application/json'},
-            withCredentials: true
-         }).success(function (data) {
-            deferred.resolve(data);
-         }).error(function (data, status) {
-            if (data === null) {
-               deferred.reject(CouchConstants.ERR_CONNECTION_REFUSED)
-            } else {
-               deferred.reject({
-                       status: status,
-                       reason: data.reason,
-                       error: data.error
-                    }
-               )
-            }
-
          });
          return deferred.promise;
       }
 
       function deleteDoc(doc) {
          var deferred = $q.defer();
-         if (doc._id === undefined || doc._rev === undefined) {
-            deferred.reject({
-               status: 400,
-               reason: "Bad Request",
-               error: "When deleting both _id and _rev must be present in the document"
-            });
-            return deferred.promise;
-         }
          $http({
             method: "DELETE",
             url: encodeUri(getDbUri(), doc._id),
             params: {rev: doc._rev},
             withCredentials: true
          }).success(function (data) {
+            //console.log(JSON.stringify(data));
+
             deferred.resolve(data);
          }).error(function (data, status) {
             if (data === null) {
@@ -278,9 +276,21 @@
          var deferred = $q.defer();
          $http({
             method: "GET",
-            url: encodeUri(getDbUri(), id.replace("/", "\/   "))
+            url: encodeUri(getDbUri(), id)
          }).success(function (data) {
+            //console.log(JSON.stringify(data));
             deferred.resolve(data);
+         }).error(function (data, status) {
+            if (data === null) {
+               deferred.reject(CouchConstants.ERR_CONNECTION_REFUSED)
+            } else {
+               deferred.reject({
+                       status: status,
+                       reason: data.reason,
+                       error: data.error
+                    }
+               )
+            }
          });
          return deferred.promise;
       }
@@ -289,9 +299,10 @@
          var deferred = $q.defer();
          $http({
             method: "GET",
-            url: encodeUri(getDbUri(), "/_all_docs"),
+            url: encodeUri(getDbUri(), "_all_docs"),
             withCredentials: true
          }).success(function (data) {
+            //console.log(JSON.stringify(data));
             //Remove all design documents
             for (var i = data.rows.length - 1; i >= 0; i--) {
                if (data.rows[i].id.indexOf('_design') >= 0) {
@@ -299,11 +310,22 @@
                }
             }
             data.total_rows = data.rows.length;
+            //console.log(JSON.stringify(data));
             deferred.resolve(data);
+         }).error(function (data, status) {
+            if (data === null) {
+               deferred.reject(CouchConstants.ERR_CONNECTION_REFUSED)
+            } else {
+               deferred.reject({
+                       status: status,
+                       reason: data.reason,
+                       error: data.error
+                    }
+               )
+            }
          });
          return deferred.promise;
       }
-
    }
 
    function CouchConstants() {
