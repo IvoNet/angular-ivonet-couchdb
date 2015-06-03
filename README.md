@@ -46,7 +46,14 @@ gulp tests
 ```sh
 bower install IvoNet/angular-ivonet-couchdb
 ```
-ß
+
+or
+
+```sh
+npm install IvoNet/angular-ivonet-couchdb
+```
+
+For the rest see the example (app.js and index.html)
 
 # TODO
 
