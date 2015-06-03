@@ -13,7 +13,7 @@ This module enables easy access to CouchDB from an angular application
     * Note that the 'origins' = '*' is not a good idea for production!
 * curl if you want to use the couch_db script
 
-## Usage
+## Build
 
 ```sh
 npm install
@@ -26,7 +26,6 @@ Just open it in a browser and start having fun.
 Or look at the unit tests (in progress)
 
 Have a look at the couch_db for an example setup script 
-
 
 ## Test
 
@@ -42,11 +41,14 @@ gulp test
 gulp tests
 ```
 
+## Usage in Angular Project
+
+bower install IvoNet/angular-ivonet-couchdb
+
 # TODO
 
 * Prohibit `/` in _id's
 * Add Attachment support
-* make the Unit tests work
 * Add coverage support
 
 
