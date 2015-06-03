@@ -44,13 +44,13 @@ gulp tests
 ## Usage in Angular Project
 
 ```sh
-bower install IvoNet/angular-ivonet-couchdb
+bower install IvoNet/angular-ivonet-couchdb --save
 ```
 
 or
 
 ```sh
-npm install IvoNet/angular-ivonet-couchdb
+npm install IvoNet/angular-ivonet-couchdb  --save
 ```
 
 For the rest see the example (app.js and index.html)
