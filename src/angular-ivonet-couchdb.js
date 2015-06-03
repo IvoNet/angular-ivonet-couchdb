@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 ivonet
+ * Copyright 2015 Ivo Woltring <webmaster@ivonet.nl>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,17 +15,6 @@
  */
 
 (function () {
-
-   function CouchConstants() {
-      "use strict";
-      return {
-         errorServiceUnavailable: {
-            status: 503,
-            error: "Service Unavailable",
-            reason: "The server may be down."
-         }
-      }
-   }
 
    function IvoNetCouchConfigProvider() {
       return {
@@ -50,7 +39,8 @@
    CouchDB.$inject = [
       'IvoNetCouchConfig',
       '$http',
-      '$q'
+      '$q',
+      'CouchConstants'
    ];
    function CouchDB(IvoNetCouchConfig, $http, $q, CouchConstants) {
       var encodeUri = function (base, part1, part2) {
@@ -98,6 +88,7 @@
             put: putDoc,
             all: getAllDocs
          }
+         //TODO Attachments!
 
       };
 
@@ -133,7 +124,7 @@
             deferred.resolve(data);
          }).error(function (data, status) {
             if (data === null) {
-               deferred.reject(CouchConstants.errorServiceUnavailable)
+               deferred.reject(CouchConstants.ERR_CONNECTION_REFUSED)
             } else {
                deferred.reject({
                        status: status,
@@ -178,12 +169,11 @@
             url: getSessionUrl(),
             withCredentials: true
          }).success(function (data) {
-            console.log(data);
             IvoNetCouchConfig.usrCtx = data.userCtx;
             deferred.resolve(data.userCtx.name !== null);
          }).error(function (data, status) {
             if (data === null) {
-               deferred.reject(CouchConstants.errorServiceUnavailable)
+               deferred.reject(CouchConstants.ERR_CONNECTION_REFUSED)
             } else {
                deferred.reject({
                        status: status,
@@ -205,7 +195,6 @@
       }
 
       function postDoc(doc) {
-         console.log("post: " + doc);
          var deferred = $q.defer();
          $http({
             method: "POST",
@@ -218,7 +207,7 @@
             deferred.resolve(data);
          }).error(function (data, status) {
             if (data === null) {
-               deferred.reject(CouchConstants.errorServiceUnavailable)
+               deferred.reject(CouchConstants.ERR_CONNECTION_REFUSED)
             } else {
                deferred.reject({
                        status: status,
@@ -244,7 +233,7 @@
             deferred.resolve(data);
          }).error(function (data, status) {
             if (data === null) {
-               deferred.reject(CouchConstants.errorServiceUnavailable)
+               deferred.reject(CouchConstants.ERR_CONNECTION_REFUSED)
             } else {
                deferred.reject({
                        status: status,
@@ -277,7 +266,7 @@
             deferred.resolve(data);
          }).error(function (data, status) {
             if (data === null) {
-               deferred.reject(CouchConstants.errorServiceUnavailable)
+               deferred.reject(CouchConstants.ERR_CONNECTION_REFUSED)
             } else {
                deferred.reject({
                        status: status,
@@ -323,7 +312,13 @@
    }
 
    angular.module('IvoNetCouchDB', [])
-        .constant('CouchConstants', CouchConstants)
+        .constant('CouchConstants', {
+           "ERR_CONNECTION_REFUSED": {
+              status: 503,
+              error: "Service Unavailable",
+              reason: "The server may be down."
+           }
+        })
         .provider('IvoNetCouchConfig', IvoNetCouchConfigProvider)
         .factory('couchdb', CouchDB);
 

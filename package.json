@@ -2,21 +2,22 @@
   "name": "couchdb-security",
   "version": "1.0.0",
   "description": "A CouchDB security module exposing some of the REST Api",
-  "main": "gulpfile.js",
+  "main": "src/angular-ivonet-couchdb.js",
   "directories": {
     "example": "example",
-    "test": "test"
+    "test": "test",
+    "dist": "dist"
   },
   "dependencies": {
-    "gulp": "^3.9.0",
-    "gulp-notify": "^2.2.0",
-    "gulp-concat": "^2.5.2",
-    "gulp-uglify": "^1.2.0"
+    "gulp": "^3.9.0"
   },
   "devDependencies": {
     "angular": "^1.4.0",
     "angular-mocks": "^1.4.0",
     "gulp-load-plugins": "^0.10.0",
+    "gulp-notify": "^2.2.0",
+    "gulp-concat": "^2.5.2",
+    "gulp-uglify": "^1.2.0",
     "jasmine": "^2.3.1",
     "jasmine-core": "^2.3.4",
     "karma": "^0.12.35",
@@ -38,10 +39,11 @@
     "DB",
     "REST",
     "Security",
-    "login"
+    "login",
+    "Auth"
   ],
   "author": "Ivo Woltring",
-  "license": "Apache 2",
+  "license": "Apache 2.0",
   "bugs": {
     "url": "https://github.com/IvoNet/couchdb-security/issues"
   },

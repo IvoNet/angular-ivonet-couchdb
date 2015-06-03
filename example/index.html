@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!--
-  ~ Copyright 2015 ivonet
+  ~ Copyright 2015 Ivo Woltring <webmaster@ivonet.nl>
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -168,7 +168,9 @@
                            class="form-control"
                            placeholder="Title"/>
                 </div>
-                <textarea class="form-control" rows="3" data-ng-model="ctrl.doc.data"></textarea>
+                <label>
+                    <textarea class="form-control" rows="3" data-ng-model="ctrl.doc.data"></textarea>
+                </label>
                 <button type="submit" class="btn btn-primary" ng-click="ctrl.doc = {}">NEW</button>
                 <button type="submit" class="btn btn-primary" ng-click="ctrl.postDoc()">POST</button>
                 <button type="submit" class="btn btn-primary" ng-click="ctrl.putDoc()">PUT</button>
@@ -182,7 +184,7 @@
     <h2>Some Tips and Tricks:</h2>
     <ul>
         <li>
-            see what happens if you login with one of the created users and then change server url 127.0.0.1 to
+            See what happens if you login with one of the created users and then change server url 127.0.0.1 to
             localhost and then press 'check' on isAuthenticated. and again when you change it back to 127.0.0.1?. Good
             stuff eh?
         </li>
@@ -216,6 +218,7 @@
 <script src="../node_modules/angular/angular.min.js"></script>
 <!--<script src=""></script>-->
 <script src="../dist/angular-ivonet-couchdb.min.js"></script>
+<!--<script src="../src/angular-ivonet-couchdb.js"></script>-->
 <script src="app.js"></script>
 </body>
 </html>

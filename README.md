@@ -28,7 +28,27 @@ Or look at the unit tests
 
 ## Test
 
+### Single run
+
 ```sh
-npm test
+gulp test
 ```
+
+### Autorun
+
+```sh
+gulp tests
+```
+
+# License
+
+[Apache 2.0](http://www.apache.org/licenses/LICENSE-2.0)
+
+
+# TODO
+
+* Prohibit `/` in _id's
+* Add Attachment support
+* make the Unit tests work
+* Add coverage support
 

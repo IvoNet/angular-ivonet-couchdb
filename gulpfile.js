@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 ivonet
+ * Copyright 2015 Ivo Woltring <webmaster@ivonet.nl>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
+var modulename = 'angular-ivonet-couchdb';
+
 var gulp = require('gulp');
 var karma = require('karma').server;
 var $ = require('gulp-load-plugins')();
-
-var modulename = 'angular-ivonet-couchdb';
 
 var src = {
    js: 'src/**/*.js',
@@ -26,23 +26,14 @@ var src = {
    dist: 'dist'
 };
 
-var tests = [
-   'node_modules/angular/angular.js',
-   'node_modules/angular-mocks/angular-mocks.js',
-   'node_modules/angular-mocks/ngMockE2E.js',
-   'node_modules/jasmine/bin/jasmine.js',
-   'src/*.js',
-   'test/*.spec.js'
-];
-
-function preserveComments(node, comment) {
+function preserveLicenseComment(node, comment) {
    return /Copyright|Apache|License/.test(comment.value);
 }
 
 gulp.task('js', function () {
    return gulp.src(src.js)
         .pipe($.concat(modulename + '.min.js'))
-        .pipe($.uglify({preserveComments: preserveComments}))
+        .pipe($.uglify({preserveComments: preserveLicenseComment}))
         .pipe(gulp.dest(src.dist))
         .pipe($.notify({message: 'Finished minifying JavaScript'}));
 });
@@ -68,16 +59,12 @@ gulp.task('watch', function () {
 gulp.task('dist', ['js']);
 gulp.task('default', ['js']);
 gulp.task('tests', [
-   'js',
    'karma:auto'
 ]);
 gulp.task('test', [
-   'js',
    'karma'
 ]);
-
 gulp.task('dev', [
    'js',
-   'karma',
    'watch'
 ]);
