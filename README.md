@@ -59,7 +59,6 @@ For the rest see the example (app.js and index.html)
 
 * Prohibit `/` in _id's
 * Add Attachment support
-* Add coverage support
 
 
 # License
