@@ -13,7 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 var gulp = require('gulp');
+var karma = require('karma').server;
 var $ = require('gulp-load-plugins')();
 
 var modulename = 'angular-ivonet-couchdb';
@@ -23,6 +25,15 @@ var src = {
    test: 'test/**/*.spec.js',
    dist: 'dist'
 };
+
+var tests = [
+   'node_modules/angular/angular.js',
+   'node_modules/angular-mocks/angular-mocks.js',
+   'node_modules/angular-mocks/ngMockE2E.js',
+   'node_modules/jasmine/bin/jasmine.js',
+   'src/*.js',
+   'test/*.spec.js'
+];
 
 function preserveComments(node, comment) {
    return /Copyright|Apache|License/.test(comment.value);
@@ -36,13 +47,37 @@ gulp.task('js', function () {
         .pipe($.notify({message: 'Finished minifying JavaScript'}));
 });
 
+gulp.task('karma', function (done) {
+   return karma.start({
+      configFile: __dirname + '/karma.conf.js',
+      singleRun: true
+   }, done);
+});
+
+gulp.task('karma:auto', function (done) {
+   return karma.start({
+      configFile: __dirname + '/karma.conf.js',
+      singleRun: false
+   }, done);
+});
+
 gulp.task('watch', function () {
    gulp.watch(src.js, ['js']);
 });
 
 gulp.task('dist', ['js']);
 gulp.task('default', ['js']);
+gulp.task('tests', [
+   'js',
+   'karma:auto'
+]);
+gulp.task('test', [
+   'js',
+   'karma'
+]);
+
 gulp.task('dev', [
    'js',
+   'karma',
    'watch'
 ]);

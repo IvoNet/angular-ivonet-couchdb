@@ -38,10 +38,10 @@ describe('Doing basic functionality tests', function () {
       $httpBackend.whenDELETE(/.*/).passThrough();
    });
 
-   it("should set the server url", function () {
-      couch.server("http://ivonet.nl/api");
-      expect(config.server).toBe("http://ivonet.nl/api");
-   });
+   //it.ignore("should set the server url", function () {
+   //   couch.server("http://ivonet.nl/api");
+   //   expect(config.server).toBe("http://ivonet.nl/api");
+   //});
 
    it("should login a valid user", function () {
       //$httpBackend.when('POST','http://127.0.0.1:5984/_session').passThrough();
