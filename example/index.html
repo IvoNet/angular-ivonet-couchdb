@@ -168,9 +168,8 @@
                            class="form-control"
                            placeholder="Title"/>
                 </div>
-                <label>
-                    <textarea class="form-control" rows="3" data-ng-model="ctrl.doc.data"></textarea>
-                </label>
+                <textarea class="form-control" rows="3" data-ng-model="ctrl.doc.data" title="couch document"
+                          placeholder="Document data"></textarea>
                 <button type="submit" class="btn btn-primary" ng-click="ctrl.doc = {}">NEW</button>
                 <button type="submit" class="btn btn-primary" ng-click="ctrl.postDoc()">POST</button>
                 <button type="submit" class="btn btn-primary" ng-click="ctrl.putDoc()">PUT</button>
@@ -217,8 +216,8 @@
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
 <script src="../node_modules/angular/angular.min.js"></script>
 <!--<script src=""></script>-->
-<script src="../dist/angular-ivonet-couchdb.min.js"></script>
-<!--<script src="../src/angular-ivonet-couchdb.js"></script>-->
+<!--<script src="../dist/angular-ivonet-couchdb.min.js"></script>-->
+<script src="../src/angular-ivonet-couchdb.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

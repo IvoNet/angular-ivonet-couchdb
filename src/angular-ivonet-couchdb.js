@@ -19,18 +19,13 @@
    function IvoNetCouchConfigProvider() {
       return {
          serverUrl: 'http://127.0.0.1:5984',
-         setServer: function (url) {
-            this.serverUrl = url;
-         },
          db: null,
-         setDB: function (db) {
-            this.db = db;
-         },
          usrCtx: {name: null, roles: []},
          $get: function () {
             return {
                server: this.serverUrl,
-               usrCtx: this.usrCtx
+               usrCtx: this.usrCtx,
+               db: this.db
             }
          }
       }
@@ -169,8 +164,8 @@
             url: getSessionUrl(),
             withCredentials: true
          }).success(function (data) {
-            IvoNetCouchConfig.usrCtx = data.userCtx;
-            deferred.resolve(data.userCtx.name !== null);
+            IvoNetCouchConfig.usrCtx = data.usrCtx;
+            deferred.resolve(data.usrCtx.name !== null);
          }).error(function (data, status) {
             if (data === null) {
                deferred.reject(CouchConstants.ERR_CONNECTION_REFUSED)
@@ -311,14 +306,18 @@
 
    }
 
+   function CouchConstants() {
+      return {
+         "ERR_CONNECTION_REFUSED": {
+            status: 503,
+            error: "Service Unavailable",
+            reason: "The server may be down."
+         }
+      }
+   }
+
    angular.module('IvoNetCouchDB', [])
-        .constant('CouchConstants', {
-           "ERR_CONNECTION_REFUSED": {
-              status: 503,
-              error: "Service Unavailable",
-              reason: "The server may be down."
-           }
-        })
+        .constant('CouchConstants', CouchConstants())
         .provider('IvoNetCouchConfig', IvoNetCouchConfigProvider)
         .factory('couchdb', CouchDB);
 
