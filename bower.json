@@ -6,7 +6,7 @@
     "Ivo Woltring <webmaster@ivonet.nl>"
   ],
   "description": "Angular CouchDB client",
-  "main": "dist/ngular-ivonet-couchdb.min.js",
+  "main": "dist/angular-ivonet-couchdb.min.js",
   "keywords": [
     "angular",
     "auth",
