@@ -82,9 +82,11 @@
             get: getDoc,
             put: putDoc,
             all: getAllDocs
+         },
+         util: {
+            uuids: getUuids
          }
          //TODO Attachments!
-
       };
 
       function setServerUrl(url) {
@@ -108,7 +110,7 @@
          var deferred = $q.defer();
          $http({
             method: "POST",
-            url: encodeUri(IvoNetCouchConfig.server) + "/_session",
+            url: getSessionUrl(),
             headers: {"Content-Type": "application/x-www-form-urlencoded"},
             data: body.replace(/%20/g, "+"),
             withCredentials: true
@@ -276,7 +278,8 @@
          var deferred = $q.defer();
          $http({
             method: "GET",
-            url: encodeUri(getDbUri(), id)
+            url: encodeUri(getDbUri(), id),
+            withCredentials: true
          }).success(function (data) {
             //console.log(JSON.stringify(data));
             deferred.resolve(data);
@@ -326,6 +329,31 @@
          });
          return deferred.promise;
       }
+   }
+
+   function getUuids(howMany) {
+      var deferred = $q.defer();
+      $http({
+         method: "GET",
+         url: encodeUri(IvoNetCouchConfig.server, "_uuids"),
+         params: {count: howMany || 1},
+         withCredentials: true
+      }).success(function (data) {
+         //console.log(JSON.stringify(data));
+         deferred.resolve(data);
+      }).error(function (data, status) {
+         if (data === null) {
+            deferred.reject(CouchConstants.ERR_CONNECTION_REFUSED)
+         } else {
+            deferred.reject({
+                    status: status,
+                    reason: data.reason,
+                    error: data.error
+                 }
+            )
+         }
+      });
+      return deferred.promise;
    }
 
    function CouchConstants() {
