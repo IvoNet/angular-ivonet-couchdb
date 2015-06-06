@@ -2,7 +2,7 @@
   "name": "angular-ivonet-couchdb",
   "version": "1.0.0",
   "description": "A CouchDB security module exposing some of the REST Api",
-  "main": "src/angular-ivonet-couchdb.js",
+  "main": "dist/angular-ivonet-couchdb.min.js",
   "directories": {
     "example": "example",
     "test": "test",
