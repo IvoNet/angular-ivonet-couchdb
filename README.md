@@ -70,4 +70,11 @@ Please contact me [here](http://www.ivonet.nl/home/contact)
 
 [Apache 2.0](http://www.apache.org/licenses/LICENSE-2.0)
 
+# Note
+
+This repo is not maintained anymore as I do not use Couchdb at the moment.
+When I do I will take it up again of use modules from others.
+
+If you like to contribute please do a pull request and I will take the time to merge it and give credit where credit is due :-)
+
 
